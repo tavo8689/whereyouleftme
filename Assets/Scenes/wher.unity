@@ -236,7 +236,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: af7440234611cbd4cbcafd1e2c306c38, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 778676191}
   m_SourcePrefab: {fileID: 100100000, guid: af7440234611cbd4cbcafd1e2c306c38, type: 3}
 --- !u!4 &650633340 stripped
 Transform:
@@ -320,6 +323,33 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 1.5, z: 0}
+--- !u!1 &778676190 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: af7440234611cbd4cbcafd1e2c306c38, type: 3}
+  m_PrefabInstance: {fileID: 650633339}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &778676191
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 778676190}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: eb94926906cb61a4788571b4601bb6c0, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &826859389
 GameObject:
   m_ObjectHideFlags: 0
@@ -478,23 +508,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4065be71f9f7a944b9ea8d43e3db3bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyChaser
-  player: {fileID: 672478488}
-  patrolPoints:
+  jugador: {fileID: 672478488}
+  puntosDePatrulla:
   - {fileID: 212199593}
   - {fileID: 296835841}
   - {fileID: 1564075278}
   - {fileID: 1535689462}
-  viewRadius: 9
-  viewAngle: 113
-  obstacleMask:
+  rendererEnemigo: {fileID: 0}
+  radioDeVision: 8.8
+  anguloDeVision: 137
+  mascaraObstaculos:
     serializedVersion: 2
-    m_Bits: 0
-  playerMask:
+    m_Bits: 64
+  mascaraJugador:
     serializedVersion: 2
     m_Bits: 8
-  patrolSpeed: 2
-  chaseSpeed: 4.5
-  searchTime: 5
+  velocidadDeambular: 2
+  velocidadPerseguir: 4.5
+  tiempoDeBusqueda: 5
+  colorDeambular: {r: 0, g: 1, b: 0, a: 1}
+  colorPerseguir: {r: 1, g: 0, b: 0, a: 1}
+  colorBuscar: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  componenteAnimator: {fileID: 778676191}
 --- !u!195 &908847780
 NavMeshAgent:
   m_ObjectHideFlags: 0

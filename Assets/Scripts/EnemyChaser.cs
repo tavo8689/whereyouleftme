@@ -3,150 +3,163 @@ using UnityEngine.AI;
 
 public class EnemyChaser : MonoBehaviour
 {
-    public enum State { Patrol, Chase, Search }
-
+    public enum Estado { Deambular, Perseguir, Buscar }
     [Header("Referencias")]
-    public Transform player;
-    public Transform[] patrolPoints;
-
+    public Transform jugador;
+    public Transform[] puntosDePatrulla;
+    public Renderer rendererEnemigo; // el Mesh Renderer del modelo, para cambiar de color
     [Header("Visión")]
-    public float viewRadius = 15f;
+    public float radioDeVision = 15f;
     [Range(0, 360)]
-    public float viewAngle = 90f;
-    public LayerMask obstacleMask;   // paredes, puertas, etc.
-    public LayerMask playerMask;     // capa del jugador
-
+    public float anguloDeVision = 90f;
+    public LayerMask mascaraObstaculos;   // paredes, puertas, etc.
+    public LayerMask mascaraJugador;      // capa del jugador
     [Header("Movimiento")]
-    public float patrolSpeed = 2f;
-    public float chaseSpeed = 4.5f;
-    public float searchTime = 5f;    // segundos buscando antes de rendirse
+    public float velocidadDeambular = 2f;
+    public float velocidadPerseguir = 4.5f;
+    public float tiempoDeBusqueda = 5f;   // segundos buscando antes de rendirse
+    [Header("Colores por estado")]
+    public Color colorDeambular = Color.green;
+    public Color colorPerseguir = Color.red;
+    public Color colorBuscar = Color.yellow;
+    private NavMeshAgent agente;
+    private Estado estadoActual = Estado.Deambular;
+    private int indicePatrullaActual = 0;
+    private Vector3 ultimaPosicionConocida;
+    private float temporizadorBusqueda;
 
-    private NavMeshAgent agent;
-    private State currentState = State.Patrol;
-    private int currentPatrolIndex = 0;
-    private Vector3 lastKnownPosition;
-    private float searchTimer;
+    public Animator componenteAnimator;
+
 
     void Start()
     {
-        agent = GetComponent<NavMeshAgent>();
-        agent.speed = patrolSpeed;
-        if (patrolPoints.Length > 0)
-            agent.SetDestination(patrolPoints[0].position);
+        agente = GetComponent<NavMeshAgent>();
+        agente.speed = velocidadDeambular;
+        // Busca el Renderer en el objeto o en cualquiera de sus hijos
+        if (rendererEnemigo == null)
+            rendererEnemigo = GetComponentInChildren<Renderer>();
+        if (puntosDePatrulla.Length > 0)
+            agente.SetDestination(puntosDePatrulla[0].position);
+        ActualizarColor();
     }
-
     void Update()
     {
-        bool canSeePlayer = CanSeePlayer();
-
-        switch (currentState)
+        bool puedeVerJugador = PuedeVerJugador();
+        switch (estadoActual)
         {
-            case State.Patrol:
-                Patrol();
-                if (canSeePlayer)
-                    EnterChase();
+            case Estado.Deambular:
+                Deambular();
+                if (puedeVerJugador)
+                    EntrarEnPerseguir();
                 break;
-
-            case State.Chase:
-                if (canSeePlayer)
+            case Estado.Perseguir:
+                if (puedeVerJugador)
                 {
-                    lastKnownPosition = player.position;
-                    agent.SetDestination(player.position);
+                    ultimaPosicionConocida = jugador.position;
+                    agente.SetDestination(jugador.position);
                 }
                 else
                 {
-                    EnterSearch();
+                    EntrarEnBuscar();
                 }
                 break;
-
-            case State.Search:
-                agent.SetDestination(lastKnownPosition);
-                if (canSeePlayer)
+            case Estado.Buscar:
+                agente.SetDestination(ultimaPosicionConocida);
+                if (puedeVerJugador)
                 {
-                    EnterChase();
+                    EntrarEnPerseguir();
                 }
-                else if (Vector3.Distance(transform.position, lastKnownPosition) < 1f)
+                else if (Vector3.Distance(transform.position, ultimaPosicionConocida) < 1f)
                 {
-                    searchTimer -= Time.deltaTime;
-                    if (searchTimer <= 0f)
-                        EnterPatrol();
+                    temporizadorBusqueda -= Time.deltaTime;
+                    if (temporizadorBusqueda <= 0f)
+                        EntrarEnDeambular();
                 }
                 break;
         }
     }
-
-    bool CanSeePlayer()
+    bool PuedeVerJugador()
     {
-        if (player == null) return false;
-
-        Vector3 dirToPlayer = (player.position - transform.position);
-        float distToPlayer = dirToPlayer.magnitude;
-
-        if (distToPlayer > viewRadius) return false;
-
-        float angle = Vector3.Angle(transform.forward, dirToPlayer);
-        if (angle > viewAngle / 2f) return false;
-
+        if (jugador == null) return false;
+        Vector3 direccionAlJugador = (jugador.position - transform.position);
+        float distanciaAlJugador = direccionAlJugador.magnitude;
+        if (distanciaAlJugador > radioDeVision) return false;
+        float angulo = Vector3.Angle(transform.forward, direccionAlJugador);
+        if (angulo > anguloDeVision / 2f) return false;
         // Chequeo de obstáculos entre el enemigo y el jugador
-        if (Physics.Raycast(transform.position + Vector3.up, dirToPlayer.normalized,
-            out RaycastHit hit, distToPlayer, obstacleMask | playerMask))
+        if (Physics.Raycast(transform.position + Vector3.up, direccionAlJugador.normalized,
+            out RaycastHit impacto, distanciaAlJugador, mascaraObstaculos | mascaraJugador))
         {
-            if (((1 << hit.collider.gameObject.layer) & playerMask) != 0)
+            if (((1 << impacto.collider.gameObject.layer) & mascaraJugador) != 0)
                 return true;
         }
         return false;
     }
-
-    void Patrol()
+    void Deambular()
     {
-        if (patrolPoints.Length == 0) return;
-
-        if (agent.remainingDistance < 0.5f && !agent.pathPending)
+        componenteAnimator.SetInteger("Momento", 1);
+        if (puntosDePatrulla.Length == 0) return;
+        if (agente.remainingDistance < 0.5f && !agente.pathPending)
         {
-            currentPatrolIndex = (currentPatrolIndex + 1) % patrolPoints.Length;
-            agent.SetDestination(patrolPoints[currentPatrolIndex].position);
+            indicePatrullaActual = (indicePatrullaActual + 1) % puntosDePatrulla.Length;
+            agente.SetDestination(puntosDePatrulla[indicePatrullaActual].position);
         }
     }
-
-    void EnterChase()
+    void EntrarEnPerseguir()
     {
-        currentState = State.Chase;
-        agent.speed = chaseSpeed;
+        componenteAnimator.SetInteger("Momento", 2);
+        estadoActual = Estado.Perseguir;
+        agente.speed = velocidadPerseguir;
+        ActualizarColor();
     }
-
-    void EnterSearch()
+    void EntrarEnBuscar()
     {
-        currentState = State.Search;
-        agent.speed = chaseSpeed;
-        lastKnownPosition = player.position;
-        searchTimer = searchTime;
+        componenteAnimator.SetInteger("Momento", 3);
+        estadoActual = Estado.Buscar;
+        agente.speed = velocidadPerseguir;
+        ultimaPosicionConocida = jugador.position;
+        temporizadorBusqueda = tiempoDeBusqueda;
+        ActualizarColor();
     }
-
-    void EnterPatrol()
+    void EntrarEnDeambular()
     {
-        currentState = State.Patrol;
-        agent.speed = patrolSpeed;
-        if (patrolPoints.Length > 0)
-            agent.SetDestination(patrolPoints[currentPatrolIndex].position);
+        componenteAnimator.SetInteger("Momento", 1);
+        estadoActual = Estado.Deambular;
+        agente.speed = velocidadDeambular;
+        if (puntosDePatrulla.Length > 0)
+            agente.SetDestination(puntosDePatrulla[indicePatrullaActual].position);
+        ActualizarColor();
     }
-
+    void ActualizarColor()
+    {
+        if (rendererEnemigo == null) return;
+        switch (estadoActual)
+        {
+            case Estado.Deambular:
+                rendererEnemigo.material.color = colorDeambular;
+                break;
+            case Estado.Perseguir:
+                rendererEnemigo.material.color = colorPerseguir;
+                break;
+            case Estado.Buscar:
+                rendererEnemigo.material.color = colorBuscar;
+                break;
+        }
+    }
     // Para visualizar el cono de visión en el editor
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, viewRadius);
-
-        Vector3 leftBoundary = DirFromAngle(-viewAngle / 2f);
-        Vector3 rightBoundary = DirFromAngle(viewAngle / 2f);
-
+        Gizmos.DrawWireSphere(transform.position, radioDeVision);
+        Vector3 limiteIzquierdo = DireccionDesdeAngulo(-anguloDeVision / 2f);
+        Vector3 limiteDerecho = DireccionDesdeAngulo(anguloDeVision / 2f);
         Gizmos.color = Color.red;
-        Gizmos.DrawLine(transform.position, transform.position + leftBoundary * viewRadius);
-        Gizmos.DrawLine(transform.position, transform.position + rightBoundary * viewRadius);
+        Gizmos.DrawLine(transform.position, transform.position + limiteIzquierdo * radioDeVision);
+        Gizmos.DrawLine(transform.position, transform.position + limiteDerecho * radioDeVision);
     }
-
-    Vector3 DirFromAngle(float angleInDegrees)
+    Vector3 DireccionDesdeAngulo(float anguloEnGrados)
     {
-        angleInDegrees += transform.eulerAngles.y;
-        return new Vector3(Mathf.Sin(angleInDegrees * Mathf.Deg2Rad), 0, Mathf.Cos(angleInDegrees * Mathf.Deg2Rad));
+        anguloEnGrados += transform.eulerAngles.y;
+        return new Vector3(Mathf.Sin(anguloEnGrados * Mathf.Deg2Rad), 0, Mathf.Cos(anguloEnGrados * Mathf.Deg2Rad));
     }
 }
