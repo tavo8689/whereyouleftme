@@ -97,7 +97,7 @@ public class EnemyChaser : MonoBehaviour
     }
     void Deambular()
     {
-        componenteAnimator.SetInteger("Momento", 1);
+        componenteAnimator.SetInteger("EstadoDeAnimacion", 1);
         if (puntosDePatrulla.Length == 0) return;
         if (agente.remainingDistance < 0.5f && !agente.pathPending)
         {
@@ -107,14 +107,14 @@ public class EnemyChaser : MonoBehaviour
     }
     void EntrarEnPerseguir()
     {
-        componenteAnimator.SetInteger("Momento", 2);
+        componenteAnimator.SetInteger("EstadoDeAnimacion", 2);
         estadoActual = Estado.Perseguir;
         agente.speed = velocidadPerseguir;
         ActualizarColor();
     }
     void EntrarEnBuscar()
     {
-        componenteAnimator.SetInteger("Momento", 3);
+        componenteAnimator.SetInteger("EstadoDeAnimacion", 3);
         estadoActual = Estado.Buscar;
         agente.speed = velocidadPerseguir;
         ultimaPosicionConocida = jugador.position;
@@ -123,7 +123,7 @@ public class EnemyChaser : MonoBehaviour
     }
     void EntrarEnDeambular()
     {
-        componenteAnimator.SetInteger("Momento", 1);
+        componenteAnimator.SetInteger("EstadoDeAnimacion", 1);
         estadoActual = Estado.Deambular;
         agente.speed = velocidadDeambular;
         if (puntosDePatrulla.Length > 0)
