@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1474007995649652654}
-  - component: {fileID: 2236627982669990169}
   - component: {fileID: 6929067658130133246}
   - component: {fileID: 932581181225195426}
   - component: {fileID: 601783030144003823}
@@ -36,40 +35,6 @@ Transform:
   - {fileID: 591209616085292274}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2236627982669990169
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6360489105858937245}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4065be71f9f7a944b9ea8d43e3db3bc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyChaser
-  jugador: {fileID: 0}
-  puntosDePatrulla:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  rendererEnemigo: {fileID: 0}
-  radioDeVision: 8.8
-  anguloDeVision: 137
-  mascaraObstaculos:
-    serializedVersion: 2
-    m_Bits: 64
-  mascaraJugador:
-    serializedVersion: 2
-    m_Bits: 8
-  velocidadDeambular: 3
-  velocidadPerseguir: 4.5
-  tiempoDeBusqueda: 5
-  colorDeambular: {r: 0, g: 1, b: 0, a: 1}
-  colorPerseguir: {r: 1, g: 0, b: 0, a: 1}
-  colorBuscar: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  componenteAnimator: {fileID: 4481765709600339617}
 --- !u!195 &6929067658130133246
 NavMeshAgent:
   m_ObjectHideFlags: 0
