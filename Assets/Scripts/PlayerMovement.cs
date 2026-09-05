@@ -5,14 +5,14 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Referencias")]
-    public Transform headTransform;   // Cámara (VR HMD o Main Camera normal)
+    public Transform headTransform; // Cámara del jugador
 
     [Header("Movimiento")]
     public float moveSpeed = 3f;
     public float gravity = -9.81f;
-    public float mouseSensitivity = 2f; // solo para probar con teclado+mouse
+    public float mouseSensitivity = 2f;
 
-    [Header("Rotación (modo teclado)")]
+    [Header("Rotación")]
     public bool useMouseLook = true;
 
     private CharacterController controller;
@@ -39,7 +39,6 @@ public class PlayerMovement : MonoBehaviour
 
     void HandleMovement()
     {
-        // Teclado: WASD o flechas
         Vector2 input = Vector2.zero;
 
         if (Keyboard.current != null)
@@ -50,7 +49,6 @@ public class PlayerMovement : MonoBehaviour
             if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed) input.x -= 1;
         }
 
-        // Gamepad (si tenés control conectado, tipo Xbox/PS)
         if (Gamepad.current != null)
         {
             Vector2 stick = Gamepad.current.leftStick.ReadValue();
@@ -76,10 +74,8 @@ public class PlayerMovement : MonoBehaviour
 
         Vector2 mouseDelta = Mouse.current.delta.ReadValue() * mouseSensitivity * 0.02f;
 
-        // Rotar el cuerpo (yaw) en Y
         transform.Rotate(Vector3.up * mouseDelta.x);
 
-        // Rotar la cámara (pitch) en X, con límite
         cameraPitch -= mouseDelta.y;
         cameraPitch = Mathf.Clamp(cameraPitch, -80f, 80f);
         headTransform.localEulerAngles = new Vector3(cameraPitch, 0f, 0f);
