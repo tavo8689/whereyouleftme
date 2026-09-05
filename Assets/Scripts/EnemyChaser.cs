@@ -8,6 +8,7 @@ public class EnemyChaser : MonoBehaviour
     public EstadoJugador estadoJugador;
     public Transform[] puntosDePatrulla;
     public Renderer rendererEnemigo;
+    public Animator animador;
 
     [Header("Patrulla por Tag")]
     public string tagPuntosDePatrulla = "PuntoDePatrulla";
@@ -23,9 +24,11 @@ public class EnemyChaser : MonoBehaviour
     public float velocidadDeambular = 2f;
     public float velocidadPerseguir = 4.5f;
     public float tiempoDeBusqueda = 5f;   // segundos buscando antes de rendirse
+    public float duracionAlerta = 1.5f;   // duración de la animación de grito antes de perseguir
 
     [Header("Colores por estado")]
     public Color colorDeambular = Color.green;
+    public Color colorAlertar = new Color(1f, 0.5f, 0f); // naranja
     public Color colorPerseguir = Color.red;
     public Color colorBuscar = Color.yellow;
 
@@ -34,10 +37,14 @@ public class EnemyChaser : MonoBehaviour
     private int indicePatrullaActual = 0;
     private Vector3 ultimaPosicionConocida;
     private float temporizadorBusqueda;
+    private float temporizadorAlerta;
 
     void Start()
     {
         agente = GetComponent<NavMeshAgent>();
+
+        if (animador == null)
+            animador = GetComponentInChildren<Animator>();
 
         if (rendererEnemigo == null)
             rendererEnemigo = GetComponentInChildren<Renderer>();
@@ -53,6 +60,7 @@ public class EnemyChaser : MonoBehaviour
             agente.SetDestination(puntosDePatrulla[0].position);
 
         ActualizarColor(MaquinaEstadosEnemigo.Estado.Deambular);
+        ActualizarAnimacion(MaquinaEstadosEnemigo.Estado.Deambular);
     }
 
     Transform[] BuscarPuntosDePatrullaPorTag()
@@ -76,6 +84,12 @@ public class EnemyChaser : MonoBehaviour
             case MaquinaEstadosEnemigo.Estado.Deambular:
                 Deambular();
                 if (puedeVerJugador)
+                    maquinaEstados.CambiarEstado(MaquinaEstadosEnemigo.Estado.Alertar);
+                break;
+
+            case MaquinaEstadosEnemigo.Estado.Alertar:
+                temporizadorAlerta -= Time.deltaTime;
+                if (temporizadorAlerta <= 0f)
                     maquinaEstados.CambiarEstado(MaquinaEstadosEnemigo.Estado.Perseguir);
                 break;
 
@@ -114,18 +128,28 @@ public class EnemyChaser : MonoBehaviour
         switch (nuevoEstado)
         {
             case MaquinaEstadosEnemigo.Estado.Deambular:
+                agente.isStopped = false;
                 agente.speed = velocidadDeambular;
                 if (puntosDePatrulla.Length > 0)
                     agente.SetDestination(puntosDePatrulla[indicePatrullaActual].position);
                 break;
 
+            case MaquinaEstadosEnemigo.Estado.Alertar:
+                agente.isStopped = true; // se queda quieto gritando
+                temporizadorAlerta = duracionAlerta;
+                if (animador != null)
+                    animador.SetTrigger("Gritar"); // se consume solo, no se repite
+                break;
+
             case MaquinaEstadosEnemigo.Estado.Perseguir:
             case MaquinaEstadosEnemigo.Estado.Buscar:
+                agente.isStopped = false;
                 agente.speed = velocidadPerseguir;
                 break;
         }
 
         ActualizarColor(nuevoEstado);
+        ActualizarAnimacion(nuevoEstado);
     }
 
     bool PuedeVerJugador()
@@ -171,6 +195,9 @@ public class EnemyChaser : MonoBehaviour
             case MaquinaEstadosEnemigo.Estado.Deambular:
                 rendererEnemigo.material.color = colorDeambular;
                 break;
+            case MaquinaEstadosEnemigo.Estado.Alertar:
+                rendererEnemigo.material.color = colorAlertar;
+                break;
             case MaquinaEstadosEnemigo.Estado.Perseguir:
                 rendererEnemigo.material.color = colorPerseguir;
                 break;
@@ -178,6 +205,12 @@ public class EnemyChaser : MonoBehaviour
                 rendererEnemigo.material.color = colorBuscar;
                 break;
         }
+    }
+
+    void ActualizarAnimacion(MaquinaEstadosEnemigo.Estado estado)
+    {
+        if (animador == null) return;
+        animador.SetInteger("EstadoDeEnemigo", (int)estado);
     }
 
     // Para visualizar el cono de visión en el editor

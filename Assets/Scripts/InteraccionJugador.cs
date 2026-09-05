@@ -6,6 +6,7 @@ public class InteraccionJugador : MonoBehaviour
     [Header("Referencias")]
     public Transform camaraJugador;
     public LayerMask capaInteractuable;
+    public EstadoJugador estadoJugador; // arrastrá el mismo componente del jugador
 
     [Header("Configuración")]
     public float distanciaInteraccion = 3f;
@@ -18,8 +19,15 @@ public class InteraccionJugador : MonoBehaviour
 
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
-            if (objetivoActual != null)
+            if (estadoJugador != null && estadoJugador.estaEscondido)
+            {
+                // Salir directo, sin depender del raycast (evita el problema de backfaces)
+                estadoJugador.escondiiteActual?.Interactuar(gameObject);
+            }
+            else if (objetivoActual != null)
+            {
                 objetivoActual.Interactuar(gameObject);
+            }
         }
     }
 

@@ -17,7 +17,7 @@ public class EscondiiteInteractuable : MonoBehaviour, IInteractuable
         if (!jugadorDentro)
         {
             jugador.transform.position = puntoDeEscondite.position;
-            estado.Esconderse();
+            estado.Esconderse(this); // guarda la referencia
             jugadorDentro = true;
             if (controller != null) controller.enabled = false;
         }

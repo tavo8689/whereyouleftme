@@ -2,7 +2,7 @@ using System;
 
 public class MaquinaEstadosEnemigo
 {
-    public enum Estado { Deambular, Perseguir, Buscar }
+    public enum Estado { Deambular, Alertar, Perseguir, Buscar }
 
     public Estado estadoActual { get; private set; } = Estado.Deambular;
 

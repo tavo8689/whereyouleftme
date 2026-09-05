@@ -31,10 +31,14 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        HandleMovement();
+        if (controller.enabled)
+        {
+            HandleMovement();
+            ApplyGravity();
+        }
+
         if (useMouseLook)
             HandleMouseLook();
-        ApplyGravity();
     }
 
     void HandleMovement()
